@@ -1,0 +1,57 @@
+from flask import Flask, request, jsonify, json
+from datetime import datetime
+from models import *
+from encoders import *
+
+app = Flask(__name__)
+app.config.from_object('config')
+
+# ----------------
+# api calls (v1.0)
+# ----------------
+BASE_PATH = '/api/v1.0'
+
+@app.route(BASE_PATH + '/')
+def hello_world():
+	return 'Hello World!'
+
+@app.route(BASE_PATH + '/products', methods=['GET'])
+def get_products():
+	return jsonify(json_list=[i.serialize for i in Product.query.all()])
+
+@app.route(BASE_PATH + '/customers', methods=['GET'])
+def get_customers():
+	return jsonify(json_list=[i.serialize for i in Customer.query.all()])
+	
+@app.route(BASE_PATH + '/orders/new', methods=['POST'])
+def new_order():
+	user_id = request.json['user_id']
+	customer_id = request.json['customer_id']
+	o = Purchase(User.query.get(user_id), Customer.query.get(customer_id))
+	db.session.add(o)
+	
+	for i in request.json['items']:
+		item = PurchaseItem(qty=i['qty'], product=Product.query.get(int(i['product_id'])), notes=i['notes'])
+		o.items.append(item)
+		db.session.add(item)
+	
+	db.session.commit()
+	
+	print("Ricevuto ordine con {0} prodotti".format(o.items.count()))
+	print(o.creation_date.strftime('%d-%m-%Y %H:%M:%S'))
+	
+	return json.dumps({"id" : o.id})
+
+# ----------------
+# web
+# ----------------	
+
+@app.route('/customers', methods=['GET'])
+def display_products():
+	products = [i.serialize for i in Product.query.all()]
+	# passing data to the template
+    return render_template("products.htm", products=products)
+	
+if __name__ == '__main__':
+	app.debug = True
+	app.run(port=8080)
