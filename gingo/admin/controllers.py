@@ -39,7 +39,7 @@ def login():
 		password = request.form.get('password')
 		
 		if username and password:
-			user = User.query.filter_by(username=username).first()
+			user = User.query.filter(User.username == username).filter(User.is_admin == True).first()
 			if user:
 				if user.password == password:
 					session['user_id'] = user.id
