@@ -23,9 +23,7 @@ def read_xml(xml):
 			tup  = (code, name, addr, cap, city, prov, piva, tel, dtin, dtmd)
 			print tup
 
-def read_xml_2(xml):
-	results = []
-	
+def read_xml_2(db, xml):
 	code = ''
 	name = ''
 	addr = ''
@@ -36,41 +34,40 @@ def read_xml_2(xml):
 	tel  = ''
 	dtin = ''
 	dtum = ''
-	cliente = {}
+	
 	
 	for event, elem in ET.iterparse(xml, events=('start', 'end')):
-		# data = (code, name, addr, cap, city, prov, piva, tel, dtin, dtum)
 		if elem.tag == 'CLIENTI':
 			if event == 'start':
-				cliente = {}
+				pass
+				#cliente = {}
 				# print '**** new cliente'
 			elif event == 'end':
-				# print cliente
-				results.append(cliente)
-		
+				sql = 'INSERT OR REPLACE INTO CUSTOMER (code, name, address, cap, city, prov, part_iva, tel, ins_date, mod_date) VALUES (?,?,?,?,?,?,?,?,?,?)'
+				cursor.execute(sql, (code, name, addr, cap, city, prov, piva, tel, dtin, dtum))
+				# print '** CREATED **'
+				
 		if event == 'end':
 			if elem.tag == 'CODCLI':
-				cliente['code'] = _t(elem)
+				code = _t(elem)
 			elif elem.tag == 'RAGSOC':
-				cliente['name'] = _t(elem)
+				name= _t(elem)
 			elif elem.tag == 'INDIR':
-				cliente['addr'] = _t(elem)
+				addr= _t(elem)
 			elif elem.tag == 'CAP':
-				cliente['cap'] = _t(elem)
+				cap= _t(elem)
 			elif elem.tag == 'LOCAL':
-				cliente['city'] = _t(elem)
+				city= _t(elem)
 			elif elem.tag == 'PROV':
-				cliente['prov'] = _t(elem)
+				prov= _t(elem)
 			elif elem.tag == 'PARTIVA':
-				cliente['piva'] = _t(elem)
+				piva= _t(elem)
 			elif elem.tag == 'TEL':
-				cliente['tel'] = _t(elem)
+				tel= _t(elem)
 			elif elem.tag == 'DATINS':
-				cliente['dtin'] = _t(elem)
+				dtin= _t(elem)
 			elif elem.tag == 'DATUMOD':
-				cliente['dtum'] = _t(elem)
-	
-	print len(results)
+				dtum= _t(elem)
 				
 def _t(elem):
 	try:
@@ -86,10 +83,11 @@ def db():
         return connection
 
 if __name__ == '__main__':
-        read_xml_2('clienti.xml')
+	with db() as db:
+		cursor = db.cursor()
+		#cursor.execute("create table product(id integer primary key, code text, name text, price float)")
+		sql= '''CREATE TABLE customer (id INTEGER NOT NULL,code TEXT UNIQUE NOT NULL,name TEXT NOT NULL,address TEXT,part_iva TEXT, tel TEXT
+			    , cap TEXT,city TEXT,prov TEXT,user_id INTEGER,ins_date TEXT, mod_date TEXT, PRIMARY KEY (id));'''
+		cursor.execute(sql)
 
-        #connection = db()
-        #cursor = connection.cursor()
-        #cursor.execute("create table product(id integer primary key, code text, name text, price float)")
-
-        #connection.close(True)
+		read_xml_2(db, 'clienti.xml')
