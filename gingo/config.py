@@ -12,7 +12,7 @@ class BaseConfig(object):
 class DevelopmentConfig(BaseConfig):
 	DEBUG = True
 	TESTING = True
-	SQLALCHEMY_DATABASE_URI = 'sqlite:///C:/Temp/gingo.db'
+	SQLALCHEMY_DATABASE_URI = 'sqlite:///tmp/gingo.db'
 	SECRET_KEY  = "weorpworipwoeirpweirpoweipro234982039480239!!"
 
 
@@ -25,7 +25,7 @@ class TestingConfig(BaseConfig):
 config = {
 	"development": "gingo.config.DevelopmentConfig",
 	"testing": "gingo.config.TestingConfig",
-	"default": "gingo.config.DevelopmentConfig"
+	"default": "gingo.config.BaseConfig"
 }
 
 
