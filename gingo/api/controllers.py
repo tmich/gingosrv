@@ -5,10 +5,15 @@ from flask import Blueprint, render_template, request, abort
 from flask.json import jsonify
 from gingo.data.models import *
 from datetime import datetime
+import os, json
 
 ## BASE_PATH = '/api/v1.0'
 
 api = Blueprint('api', __name__, template_folder='templates')
+
+#json_products  = jsonify(json_list=[i.serialize for i in Product.query.all()])
+#json_customers = jsonify(json_list=[i.serialize for i in Customer.query.all()])
+
 
 @api.route('/')
 def hello_world():
@@ -31,20 +36,20 @@ def login():
 
 @api.route('/products', methods=['GET'])
 def get_products():
-	#print("Found {0} products.".format(len(Product.query.all())))
 	return jsonify(json_list=[i.serialize for i in Product.query.all()])
 
-@api.route('/customers/', methods=['GET'])
+
+@api.route('/customers', methods=['GET'])
 def get_customers():
-	#print("Found {0} customers.".format(len(Customer.query.all())))
 	return jsonify(json_list=[i.serialize for i in Customer.query.all()])
+
 	
 @api.route('/orders/new', methods=['POST'])
 def new_order():
 	user_id = request.json['user_id']
 	customer_code = request.json['customer_code']
 	type = request.json['type']
-	
+	print(user_id)
 	if type == "I":
 		abort(500)
 		
@@ -58,11 +63,11 @@ def new_order():
 	
 	db.session.commit()
 	
-	print("Ricevuto ordine con {0} prodotti:".format(purchase.items.count()))
-	print("Cliente: " + Customer.query.filter(Customer.code == customer_code).first().name)
-	print("Data creazione: " + purchase.creation_date.strftime('%d-%m-%Y %H:%M:%S'))
-	for item in purchase.items:
-		print("%rx %r [%r]" % (item.qty, item.product.name, item.notes))
+	# print("Ricevuto ordine con {0} prodotti:".format(purchase.items.count()))
+	# print("Cliente: " + Customer.query.filter(Customer.code == customer_code).first().name)
+	# print("Data creazione: " + purchase.creation_date.strftime('%d-%m-%Y %H:%M:%S'))
+	# for item in purchase.items:
+		# print("%rx %r [%r]" % (item.qty, item.product.name, item.notes))
 	
 	return jsonify({"id" : purchase.id})
 	
@@ -93,3 +98,10 @@ def new_order_icewer():
 	
 	return jsonify({"id" : o.id})
 	
+# @api.route('/checkAppVersion', methods=['GET']):
+# def check_app_version():
+	# return jsonify({"success" : True, "latestVersion" : 2, "appURI" : url_for('.downloadApp')})
+
+# @api.route('/downloadApp', methods=['GET']):
+# def downloadApp():
+	# return 1

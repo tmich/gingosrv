@@ -17,6 +17,7 @@
 		{% for data in orders.items %}
 		<tr>
 			<td>{{data.id}}</td>
+			<td><a href="{{ url_for('admin.download_doc', id_doc=data.id) }}">Scarica</a></td>
 			<td>{{data.customer.name}}</td>
 			<td>{{data.creation_date}}</td>
 			<!--td>{#data.user.username#}</td-->

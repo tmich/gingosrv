@@ -2,7 +2,7 @@ import os
 
 
 class BaseConfig(object):
-	DEBUG = False
+	DEBUG = True
 	TESTING = False
 	# sqlite :memory: identifier is the default if no filepath is present
 	SQLALCHEMY_DATABASE_URI = 'sqlite:///data/gingo.db'

@@ -1,7 +1,8 @@
 from functools import wraps
-from flask import g, request, Blueprint, render_template, redirect, url_for, flash, abort, session
+from flask import g, request, Blueprint, render_template, redirect, url_for, flash, abort, session, make_response
 from gingo.data.models import db, User, Product, Customer, Purchase, PurchaseItem
 from gingo.data.parsers import CustomerXmlParser, ProductXmlParser
+from reportlab.pdfgen import canvas
 
 admin = Blueprint('admin', __name__, template_folder='templates')
 
@@ -294,11 +295,48 @@ def import_customers():
 		
 		flash(message, category='success')
 		return redirect(url_for('.display_customers'))
-	
+
+#####################
+## 	    orders     ##
+#####################
+		
 @admin.route('/orders', methods=['GET'])
 @admin.route('/orders/<int:page>', methods=['GET'])
 @login_required
 def display_orders(page=1):
-	orders = Purchase.query.paginate(page, 10, False)
+	orders = Purchase.query.order_by(Purchase.creation_date.desc()).paginate(page, 10, False)
 	return render_template("orders.htm", orders=orders)
+	
+@admin.route('/download_doc/<int:id_doc>', methods=['GET'])
+@login_required
+def download_doc(id_doc):
+	o = Purchase.query.get(id_doc)
+
+	import cStringIO
+	output = cStringIO.StringIO()
+
+	p = canvas.Canvas(output)
+	p.setLineWidth(.3)
+	p.setFont('Helvetica', 12)
+	p.drawString(30,750, o.customer.code + " -  " + o.customer.name)
+	p.drawString(30,735, "Ordine n. " + str(o.id) + " del " + o.creation_date.strftime('%d/%m/%Y'))
+	
+	y = 710
+	for item in o.items:
+		notes = ("*** " + str(item.notes) + " ***") if len(str(item.notes)) > 0 else ""
+		p.drawString(30,y, str(item.qty) + "x  [" + item.product.code + "] " + item.product.name + notes)
+		y = y-25
+	
+	
+	p.showPage()
+	p.save()
+
+	pdf_out = output.getvalue()
+	output.close()
+
+	response = make_response(pdf_out)
+	# filename = o.id + 'pdf'
+	response.headers['Content-Disposition'] = "attachment; filename='ordine.pdf'"
+	response.mimetype = 'application/pdf'
+	return response
 	
