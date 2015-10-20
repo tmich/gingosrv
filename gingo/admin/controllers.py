@@ -323,7 +323,11 @@ def download_doc(id_doc):
 	
 	y = 710
 	for item in o.items:
-		notes = ("*** " + str(item.notes) + " ***") if len(str(item.notes)) > 0 else ""
+		notes = item.notes.encode('utf-8')
+		# print notes
+		notes = ("*** " + notes + " ***") if len(notes) > 0 else ""
+		# print notes
+		notes = unicode(notes, 'utf-8')
 		p.drawString(30,y, str(item.qty) + "x  [" + item.product.code + "] " + item.product.name + notes)
 		y = y-25
 	
